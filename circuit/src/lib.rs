@@ -1,6 +1,7 @@
 mod merkle;
-mod pool;
+pub mod pool;
 
+use serde::{Deserialize, Serialize};
 use sha3::Digest;
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -8,7 +9,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 #[cfg(test)]
 use rand::Rng;
 
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Hash([u8; 32]);
 
 impl Hash {

@@ -1,4 +1,5 @@
 use crate::{hash_two, next_index, num_to_bits_vec, Error as MerkleError, Hash};
+use serde::Serialize;
 use sha3::{Digest, Keccak256};
 use std::{collections::HashMap, marker::PhantomData};
 
@@ -16,6 +17,7 @@ pub fn num_to_bits(num: u64) -> Vec<bool> {
     to_bits(num.to_be_bytes().as_ref())
 }
 
+#[derive(Debug, Clone, Serialize)]
 pub struct Path {
     index: u64,
     neighbours: Vec<Hash>,
@@ -123,6 +125,7 @@ where
         self.index += 1;
     }
 
+    #[cfg(test)]
     pub fn insert_batch(&mut self, leaves: Vec<Hash>) {
         for leaf in leaves {
             self.insert_leaf(leaf);
