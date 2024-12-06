@@ -14,8 +14,9 @@
     "windows": [
       {
         "title": "shield",
-        "width": 800,
-        "height": 600
+        "width": 460,
+        "height": 800,
+        "resizable": false
       }
     ],
     "security": {

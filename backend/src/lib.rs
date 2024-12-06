@@ -16,6 +16,11 @@ lazy_static! {
 }
 
 #[tauri::command]
+fn get_default_account() -> String {
+    DEFAULT_ACCOUNT.to_string()
+}
+
+#[tauri::command]
 fn deposit(recipiant: u64) -> Result<String, String> {
     let mut rng = thread_rng();
     let secret = rng.gen::<u64>();
@@ -79,11 +84,13 @@ fn withdraw(nullifier: Hash) -> Result<bool, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             deposit,
             get_notes,
             get_nullifiers,
             withdraw,
+            get_default_account,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
