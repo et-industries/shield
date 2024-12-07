@@ -4,7 +4,10 @@ use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts = use_state(|| Vec::new());
+    let unshielded_accounts =
+        use_state(|| vec!["0x1234....5678".to_string(), "0xabcd....efgh".to_string()]);
+    let shielded_accounts =
+        use_state(|| vec!["0x1234....5678".to_string(), "0xabcd....efgh".to_string()]);
     {
         let mut unshielded_accounts = unshielded_accounts.to_vec();
         use_effect(move || {
@@ -29,6 +32,13 @@ pub fn app() -> Html {
             </div>
             <div class="shielded-accounts">
                 <h2 class="accounts-title">{"Shielded accounts"}</h2>
+                {shielded_accounts.iter().map(|x| {
+                    html! {
+                        <div class="accounts-item">
+                            <p>{ &*x }</p>
+                        </div>
+                    }
+                }).collect::<Html>()}
             </div>
         </main>
     }
