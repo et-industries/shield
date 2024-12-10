@@ -129,7 +129,7 @@ pub fn shielded_account() -> Html {
     html! {
         <div>
             <div>
-                {(*shielded_address).clone()}{":"}{(*deposited_amount).clone()}<strong>{" ETH"}</strong>
+                {(*shielded_address).clone()}{" : "}{(*deposited_amount).clone()}<strong>{" ETH"}</strong>
             </div>
             <div style="margin-top: 10px;">
                 <button
