@@ -22,3 +22,28 @@
     justify-content: center;
     text-align: center;
 }
+
+.unshielded-accounts {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.shielded-accounts {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.accounts-item {
+    border: #f6f6f6 1px solid;
+    border-radius: 5px;
+    margin: 10px;
+    padding: 10px;
+}
