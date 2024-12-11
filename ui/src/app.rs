@@ -97,10 +97,8 @@ pub fn unshielded_account() -> Html {
                     // oninput={on_address_change}
                 />
             </div>
-            <div style="margin-top: 10px;">
-                <button
-                    onclick={on_deposit}
-                    style="padding: 8px 12px; margin-right: 10px; background-color: green; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            <div class = "deposit-button">
+                <button onclick={on_deposit} >
                     {"Deposit"}
                 </button>
             </div>
@@ -130,10 +128,8 @@ pub fn shielded_account() -> Html {
             <div>
                 {(*shielded_address).clone()}{" : "}{(*deposited_amount).clone()}<strong>{" ETH"}</strong>
             </div>
-            <div style="margin-top: 10px;">
-                <button
-                    onclick={on_withdraw}
-                    style="padding: 8px 12px; background-color: red; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            <div class = "withdraw-button">
+                <button onclick={on_withdraw} >
                     {"Withdraw"}
                 </button>
             </div>
