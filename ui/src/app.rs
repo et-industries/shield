@@ -4,8 +4,7 @@ use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts =
-        use_state(|| vec!["0x1234....5678".to_string(), "0xabcd....efgh".to_string()]);
+    let unshielded_accounts = use_state(|| vec!["0x1234....5678".to_string()]);
     let shielded_accounts =
         use_state(|| vec!["0x1234....5678".to_string(), "0xabcd....efgh".to_string()]);
     {
@@ -19,28 +18,28 @@ pub fn app() -> Html {
     }
 
     html! {
-        <main class="container">
-            <div class="unshielded-accounts">
-                <h2 class="accounts-title">{"Unshielded accounts"}</h2>
-                {unshielded_accounts.iter().map(|x| {
-                    html! {
-                        <div class="accounts-item">
-                            <UnShieldedAccount />
-                        </div>
-                    }
-                }).collect::<Html>()}
-            </div>
-            <div class="shielded-accounts">
-                <h2 class="accounts-title">{"Shielded accounts"}</h2>
-                {shielded_accounts.iter().map(|x| {
-                    html! {
-                        <div class="accounts-item">
-                            <ShieldedAccount />
-                        </div>
-                    }
-                }).collect::<Html>()}
-            </div>
-        </main>
+        <div class="container">
+          <h1 class="accounts-title">{"Unshielded accounts"}</h1>
+          <div class="accounts-list">
+            {unshielded_accounts.iter().map(|x| {
+              html! {
+                <div class="accounts-item">
+                  <UnShieldedAccount />
+                </div>
+              }
+            }).collect::<Html>()}
+          </div>
+          <h1 class="accounts-title">{"Shielded accounts"}</h1>
+          <div class="accounts-list">
+            {shielded_accounts.iter().map(|x| {
+              html! {
+                <div class="accounts-item">
+                  <ShieldedAccount />
+                </div>
+              }
+            }).collect::<Html>()}
+          </div>
+        </div>
     }
 }
 
