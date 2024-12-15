@@ -22,7 +22,7 @@ enum ToolCall {
 pub struct ResponseMessage {
     role: Role,
     content: String,
-    tool_calls: Vec<ToolCall>,
+    tool_calls: Option<Vec<ToolCall>>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -132,9 +132,8 @@ impl CompletionModel for Ollama {
             .await
             .unwrap();
         let res: Response = res.json().await.unwrap();
-        let completion_res = if res.message.tool_calls.len() > 0 {
-            assert!(res.message.tool_calls.len() == 1);
-            let tool_call = res.message.tool_calls[0].clone();
+        let completion_res = if let Some(tool_calls) = res.message.tool_calls.clone() {
+            let tool_call = tool_calls[0].clone();
             let model_choice = match tool_call {
                 ToolCall::Function { name, arguments } => ModelChoice::ToolCall(name, arguments),
             };

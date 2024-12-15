@@ -7,17 +7,15 @@ use shield_circuit::{
 use std::sync::Mutex;
 use std::{collections::HashMap, ops::AddAssign};
 
-const DEFAULT_ACCOUNT: u64 = 123;
-
 lazy_static! {
     static ref NOTES: Mutex<HashMap<Hash, Note>> = Mutex::new(HashMap::new());
-    static ref POOL: Mutex<AnonymityPool> = Mutex::new(AnonymityPool::new(DEFAULT_ACCOUNT));
+    static ref POOL: Mutex<AnonymityPool> = Mutex::new(AnonymityPool::new());
     static ref TOPIC: Mutex<u64> = Mutex::new(0);
 }
 
 #[tauri::command]
 fn get_default_account() -> String {
-    DEFAULT_ACCOUNT.to_string()
+    AnonymityPool::account().to_string()
 }
 
 #[tauri::command]
@@ -36,7 +34,7 @@ fn deposit(recipiant: u64) -> Result<String, String> {
         Ok(pool) => pool,
         Err(e) => return Err(e.to_string()),
     };
-    let note = pool.deposit(DEFAULT_ACCOUNT, secret, topic.clone(), recipiant);
+    let note = pool.deposit(AnonymityPool::account(), secret, topic.clone(), recipiant);
     let nullifier = note.nullifier();
     notes.insert(nullifier.clone(), note);
     topic.add_assign(1);

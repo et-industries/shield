@@ -72,7 +72,7 @@ where
         default.insert((0, 0), Hash::default());
         for i in 0..Self::num_levels() {
             let h = hash_two::<H>(default[&(i, 0u64)].clone(), default[&(i, 0u64)].clone());
-            default.insert(((i + 1), 0), h);
+            default.insert((i + 1, 0), h);
         }
 
         Self {
@@ -94,7 +94,35 @@ where
             .ok_or(MerkleError::RootNotFound)
     }
 
-    pub fn insert_leaf(&mut self, leaf: Hash) {
+    pub fn find_path(&self, index: u64) -> Path {
+        let bits = num_to_bits_vec(index);
+        let mut curr_index = index;
+
+        let mut neighbours = Vec::new();
+        for i in 0..Self::num_levels() {
+            let neighbour = if bits[i as usize] {
+                let n_key = (i, curr_index - 1);
+                let n = self.nodes.get(&n_key).unwrap_or(&self.default[&(i, 0)]);
+                n
+            } else {
+                let n_key = (i, curr_index + 1);
+                let n = self.nodes.get(&n_key).unwrap_or(&self.default[&(i, 0)]);
+                n
+            };
+            neighbours.push(neighbour.clone());
+            curr_index = next_index(curr_index);
+        }
+
+        let leaf = self.nodes.get(&(0, index)).cloned().unwrap();
+
+        Path {
+            leaf,
+            neighbours,
+            index,
+        }
+    }
+
+    pub fn insert_leaf(&mut self, leaf: Hash) -> u64 {
         let max_size = 2u64.pow(Self::num_levels()) - 1;
         let index = self.index;
         assert!(index + 1 < max_size);
@@ -123,6 +151,7 @@ where
         }
 
         self.index += 1;
+        index
     }
 
     #[cfg(test)]
