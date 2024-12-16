@@ -92,7 +92,7 @@ pub fn unshielded_account(
     }: &UnShieldAccountProps,
 ) -> Html {
     // State to hold the shielded address
-    let shielded_address = use_state(|| "0x12345....67890".to_string());
+    let shielded_address = use_state(|| "".to_string());
 
     // State to hold the deposit amount (dummy value for now)
     let deposit_amount = use_state(|| 0u64);
@@ -124,6 +124,8 @@ pub fn unshielded_account(
         let deposit_amount = deposit_amount.clone();
         Callback::from(move |_| {
             deposit_clicked.emit((shielded_address.to_string(), *deposit_amount));
+            shielded_address.set("".to_string());
+            deposit_amount.set(0);
         })
     };
 
@@ -138,6 +140,7 @@ pub fn unshielded_account(
                     type="text"
                     placeholder="Enter Shield address"
                     oninput={on_address_change}
+                    value={shielded_address.to_string()}
                 />
             </div>
             <div>
@@ -146,6 +149,7 @@ pub fn unshielded_account(
                     type="text"
                     placeholder="Enter Deposit amount"
                     oninput={on_deposit_amount_change}
+                    value={if *deposit_amount == 0 { "".to_string() } else { deposit_amount.to_string() }}
                 />
             </div>
             <div class = "deposit-button">
