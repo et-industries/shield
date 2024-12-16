@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     hash_leaf, hash_two,
-    merkle::{self, DenseIncrementalMerkleTree, Path},
+    merkle::{self, DenseIncrementalMerkleTree},
     Hash,
 };
 use serde::Serialize;

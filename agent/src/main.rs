@@ -4,7 +4,7 @@ use ollama::Ollama;
 use rand::{thread_rng, Rng};
 use rig::{
     agent::AgentBuilder,
-    completion::{Chat, Message, Prompt, ToolDefinition},
+    completion::{Chat, Message, ToolDefinition},
     tool::Tool,
 };
 use serde::{Deserialize, Serialize};

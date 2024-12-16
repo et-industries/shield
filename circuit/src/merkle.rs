@@ -25,14 +25,6 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn default() -> Self {
-        Self {
-            index: 0,
-            neighbours: Vec::new(),
-            leaf: Hash::default(),
-        }
-    }
-
     pub fn verify_against(&self, root: Hash) -> bool {
         let sides = num_to_bits(self.index);
         let mut next = self.leaf.clone();
