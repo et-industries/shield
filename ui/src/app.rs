@@ -2,20 +2,37 @@ use crate::bindgen::*;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
+use crate::util::AccountState;
+
+const DEFAULT_BALANCE: u64 = 100;
+const DEFAULT_DEPOSITED: u64 = 10;
+
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts = use_state(|| vec!["0x1234....5678".to_string()]);
-    let shielded_accounts =
-        use_state(|| vec!["0x1234....5678".to_string(), "0xabcd....efgh".to_string()]);
-    {
-        let mut unshielded_accounts = unshielded_accounts.to_vec();
-        use_effect(move || {
-            spawn_local(async move {
-                let res = invoke_without_args("get_default_account").await.as_string();
-                unshielded_accounts.push(res.unwrap_or("0".to_string()));
-            });
-        });
-    }
+    let unshielded_accounts: UseStateHandle<Vec<AccountState>> = use_state(|| {
+        vec![AccountState::new(
+            "0x1234....5678".to_string(),
+            DEFAULT_BALANCE,
+            0,
+        )]
+    });
+
+    let shielded_accounts: UseStateHandle<Vec<AccountState>> = use_state(|| {
+        vec![
+            AccountState::new("0x1234....5678".to_string(), 0, DEFAULT_DEPOSITED),
+            AccountState::new("0xabcd....efgh".to_string(), 0, DEFAULT_DEPOSITED),
+        ]
+    });
+
+    // {
+    //     let mut unshielded_accounts = unshielded_accounts.to_vec();
+    //     use_effect(move || {
+    //         spawn_local(async move {
+    //             let res = invoke_without_args("get_default_account").await.as_string();
+    //             unshielded_accounts.push(res.unwrap_or("0".to_string()));
+    //         });
+    //     });
+    // }
 
     html! {
         <div class="container">
