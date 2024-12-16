@@ -20,4 +20,4 @@ lazy_static.workspace = true
 tokio = { workspace = true, features = ["full"] }
 reqwest = { workspace = true, features = ["json"] }
 
-rig-core = { version = "0.5.0", path = "../../rig/rig-core" }
+rig-core = { version = "0.5.0" }
