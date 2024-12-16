@@ -13,6 +13,12 @@ use rand::Rng;
 pub struct Hash([u8; 32]);
 
 impl Hash {
+    pub fn from_hex(s: String) -> Hash {
+        let mut bytes = [0; 32];
+        bytes.copy_from_slice(hex::decode(s).unwrap().as_slice());
+        Hash(bytes)
+    }
+
     pub fn to_hex(self) -> String {
         hex::encode(self.0)
     }
