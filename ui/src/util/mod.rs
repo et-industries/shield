@@ -1,4 +1,4 @@
-use yew::Properties;
+use yew::{Callback, MouseEvent, Properties};
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct AccountState {
@@ -15,4 +15,18 @@ impl AccountState {
             deposited,
         }
     }
+}
+
+#[derive(Properties, PartialEq)]
+pub struct UnShieldAccountProps {
+    pub address: String,
+    pub balance: u64,
+    pub deposit_clicked: Callback<MouseEvent>,
+}
+
+#[derive(Properties, PartialEq)]
+pub struct ShieldAccountProps {
+    pub address: String,
+    pub deposited: u64,
+    pub withdraw_clicked: Callback<MouseEvent>,
 }
