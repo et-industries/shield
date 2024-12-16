@@ -21,7 +21,7 @@ impl AccountState {
 pub struct UnShieldAccountProps {
     pub address: String,
     pub balance: u64,
-    pub deposit_clicked: Callback<String>,
+    pub deposit_clicked: Callback<(String, u64)>,
 }
 
 #[derive(Properties, PartialEq)]

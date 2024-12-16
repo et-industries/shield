@@ -37,10 +37,12 @@ pub fn app() -> Html {
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
-        Callback::from(move |new_shielded_addr: String| {
+        Callback::from(move |(new_shielded_addr, deposit_amount)| {
             let mut accounts = shielded_accounts.to_vec();
-            accounts.push(AccountState::new(new_shielded_addr, 0, DEFAULT_DEPOSITED));
+            accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
             shielded_accounts.set(accounts);
+
+            // TODO: call deposit function of backend
         })
     };
 
@@ -50,6 +52,8 @@ pub fn app() -> Html {
             let mut accounts = shielded_accounts.to_vec();
             accounts.retain(|a| a.address != shielded_addr);
             shielded_accounts.set(accounts);
+
+            // TODO: call withdraw function of backend
         })
     };
 
@@ -91,7 +95,7 @@ pub fn unshielded_account(
     let shielded_address = use_state(|| "0x12345....67890".to_string());
 
     // State to hold the deposit amount (dummy value for now)
-    let deposit_amount = use_state(|| "0.00".to_string());
+    let deposit_amount = use_state(|| 0u64);
 
     // Handle address input change
     let on_address_change = {
@@ -103,12 +107,23 @@ pub fn unshielded_account(
         })
     };
 
+    // Handle deposit amount input change
+    let on_deposit_amount_change = {
+        let deposit_amount = deposit_amount.clone();
+        Callback::from(move |e: InputEvent| {
+            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                deposit_amount.set(input.value().parse().unwrap_or_default());
+            }
+        })
+    };
+
     // Handle deposit button click
     let on_click = {
         let deposit_clicked = deposit_clicked.clone();
         let shielded_address = shielded_address.clone();
+        let deposit_amount = deposit_amount.clone();
         Callback::from(move |_| {
-            deposit_clicked.emit(shielded_address.to_string());
+            deposit_clicked.emit((shielded_address.to_string(), *deposit_amount));
         })
     };
 
@@ -130,7 +145,7 @@ pub fn unshielded_account(
                     id="deposit_amount"
                     type="text"
                     placeholder="Enter Deposit amount"
-                    // oninput={on_address_change}
+                    oninput={on_deposit_amount_change}
                 />
             </div>
             <div class = "deposit-button">
