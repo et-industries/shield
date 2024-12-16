@@ -1,11 +1,9 @@
 use crate::{
     bindgen::*,
-    util::{ShieldAccountProps, UnShieldAccountProps},
+    util::{ShieldAccountProps, UnShieldAccountProps, AccountState},
 };
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-
-use crate::util::AccountState;
 
 const DEFAULT_BALANCE: u64 = 100;
 const DEFAULT_DEPOSITED: u64 = 10;
