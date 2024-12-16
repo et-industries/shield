@@ -1,10 +1,10 @@
-use serde::de;
+use yew::Properties;
 
-#[derive(Debug)]
+#[derive(Properties, PartialEq, Debug)]
 pub struct AccountState {
-    address: String,
-    balance: u64,
-    deposited: u64,
+    pub address: String,
+    pub balance: u64,
+    pub deposited: u64,
 }
 
 impl AccountState {
