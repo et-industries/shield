@@ -39,7 +39,7 @@ pub fn app() -> Html {
         <div class="container">
           <h1 class="accounts-title">{"Unshielded accounts"}</h1>
           <div class="accounts-list">
-            {unshielded_accounts.iter().map(|AccountState { address, balance, deposited }| {
+            {unshielded_accounts.iter().map(|AccountState { address, balance, .. }| {
               html! {
                 <div class="accounts-item">
                   <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={Callback::from(|_|{})} />
@@ -49,7 +49,7 @@ pub fn app() -> Html {
           </div>
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
-            {shielded_accounts.iter().map(|AccountState { address, deposited, balance }| {
+            {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
               html! {
                 <div class="accounts-item">
                   <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={Callback::from(|_|{})} />
