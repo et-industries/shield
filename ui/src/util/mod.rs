@@ -1,6 +1,6 @@
 use yew::{Callback, MouseEvent, Properties};
 
-#[derive(Properties, PartialEq, Debug)]
+#[derive(Debug)]
 pub struct AccountState {
     pub address: String,
     pub balance: u64,

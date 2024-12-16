@@ -1,4 +1,7 @@
-use crate::bindgen::*;
+use crate::{
+    bindgen::*,
+    util::{ShieldAccountProps, UnShieldAccountProps},
+};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -41,7 +44,7 @@ pub fn app() -> Html {
             {unshielded_accounts.iter().map(|AccountState { address, balance, deposited }| {
               html! {
                 <div class="accounts-item">
-                  <UnShieldedAccount address={address.clone()} balance={balance} deposited={deposited} />
+                  <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={Callback::from(|_|{})} />
                 </div>
               }
             }).collect::<Html>()}
@@ -51,7 +54,7 @@ pub fn app() -> Html {
             {shielded_accounts.iter().map(|AccountState { address, deposited, balance }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} balance={balance} deposited={deposited} />
+                  <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={Callback::from(|_|{})} />
                 </div>
               }
             }).collect::<Html>()}
@@ -62,9 +65,11 @@ pub fn app() -> Html {
 
 #[function_component(UnShieldedAccount)]
 pub fn unshielded_account(
-    AccountState {
-        address, balance, ..
-    }: &AccountState,
+    UnShieldAccountProps {
+        address,
+        balance,
+        deposit_clicked,
+    }: &UnShieldAccountProps,
 ) -> Html {
     // State to hold the shielded address
     let shielded_address = use_state(|| "0x12345....67890".to_string());
@@ -84,11 +89,13 @@ pub fn unshielded_account(
 
     // Dummy actions for Deposit button
     let on_deposit = {
-        let deposit_amount = deposit_amount.clone();
-        Callback::from(move |_| {
-            // Dummy deposit logic
-            deposit_amount.set("10.00 ETH".to_string());
-        })
+        // let deposit_amount = deposit_amount.clone();
+        // Callback::from(move |_| {
+        //     // Dummy deposit logic
+        //     deposit_amount.set("10.00 ETH".to_string());
+        // })
+
+        deposit_clicked
     };
 
     html! {
@@ -123,17 +130,14 @@ pub fn unshielded_account(
 
 #[function_component(ShieldedAccount)]
 pub fn shielded_account(
-    AccountState {
-        address, deposited, ..
-    }: &AccountState,
+    ShieldAccountProps {
+        address,
+        deposited,
+        withdraw_clicked,
+    }: &ShieldAccountProps,
 ) -> Html {
     // Dummy actions for Withdraw button
-    let on_withdraw = {
-        Callback::from(move |_| {
-            // Dummy withdraw logic
-            println!("withdraw clicked!");
-        })
-    };
+    let on_withdraw = { withdraw_clicked };
 
     html! {
         <div>
