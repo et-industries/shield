@@ -1,5 +1,6 @@
 mod app;
 mod bindgen;
+mod util;
 
 use app::App;
 
