@@ -1,6 +1,6 @@
 use crate::{
     bindgen::*,
-    util::{ShieldAccountProps, UnShieldAccountProps, AccountState},
+    util::{AccountState, ShieldAccountProps, UnShieldAccountProps},
 };
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -10,7 +10,7 @@ const DEFAULT_DEPOSITED: u64 = 10;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts: UseStateHandle<Vec<AccountState>> = use_state(|| {
+    let unshielded_accounts = use_state(|| {
         vec![AccountState::new(
             "0x1234....5678".to_string(),
             DEFAULT_BALANCE,
@@ -18,7 +18,7 @@ pub fn app() -> Html {
         )]
     });
 
-    let shielded_accounts: UseStateHandle<Vec<AccountState>> = use_state(|| {
+    let shielded_accounts = use_state(|| {
         vec![
             AccountState::new("0x1234....5678".to_string(), 0, DEFAULT_DEPOSITED),
             AccountState::new("0xabcd....efgh".to_string(), 0, DEFAULT_DEPOSITED),
@@ -35,6 +35,28 @@ pub fn app() -> Html {
     //     });
     // }
 
+    let deposit_click = {
+        let shielded_accounts = shielded_accounts.clone();
+        Callback::from(move |(new_shielded_addr, deposit_amount)| {
+            let mut accounts = shielded_accounts.to_vec();
+            accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
+            shielded_accounts.set(accounts);
+
+            // TODO: call deposit function of backend
+        })
+    };
+
+    let withdraw_click = {
+        let shielded_accounts = shielded_accounts.clone();
+        Callback::from(move |shielded_addr: String| {
+            let mut accounts = shielded_accounts.to_vec();
+            accounts.retain(|a| a.address != shielded_addr);
+            shielded_accounts.set(accounts);
+
+            // TODO: call withdraw function of backend
+        })
+    };
+
     html! {
         <div class="container">
           <h1 class="accounts-title">{"Unshielded accounts"}</h1>
@@ -42,7 +64,7 @@ pub fn app() -> Html {
             {unshielded_accounts.iter().map(|AccountState { address, balance, .. }| {
               html! {
                 <div class="accounts-item">
-                  <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={Callback::from(|_|{})} />
+                  <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={deposit_click.clone()} />
                 </div>
               }
             }).collect::<Html>()}
@@ -52,7 +74,7 @@ pub fn app() -> Html {
             {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={Callback::from(|_|{})} />
+                  <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={withdraw_click.clone()} />
                 </div>
               }
             }).collect::<Html>()}
@@ -70,30 +92,41 @@ pub fn unshielded_account(
     }: &UnShieldAccountProps,
 ) -> Html {
     // State to hold the shielded address
-    let shielded_address = use_state(|| "0x12345....67890".to_string());
+    let shielded_address = use_state(|| "".to_string());
 
     // State to hold the deposit amount (dummy value for now)
-    let deposit_amount = use_state(|| "0.00".to_string());
+    let deposit_amount = use_state(|| 0u64);
 
     // Handle address input change
     let on_address_change = {
-        let address = shielded_address.clone();
+        let shielded_address = shielded_address.clone();
         Callback::from(move |e: InputEvent| {
             if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
-                address.set(input.value());
+                shielded_address.set(input.value());
             }
         })
     };
 
-    // Dummy actions for Deposit button
-    let on_deposit = {
-        // let deposit_amount = deposit_amount.clone();
-        // Callback::from(move |_| {
-        //     // Dummy deposit logic
-        //     deposit_amount.set("10.00 ETH".to_string());
-        // })
+    // Handle deposit amount input change
+    let on_deposit_amount_change = {
+        let deposit_amount = deposit_amount.clone();
+        Callback::from(move |e: InputEvent| {
+            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
+                deposit_amount.set(input.value().parse().unwrap_or_default());
+            }
+        })
+    };
 
-        deposit_clicked
+    // Handle deposit button click
+    let on_click = {
+        let deposit_clicked = deposit_clicked.clone();
+        let shielded_address = shielded_address.clone();
+        let deposit_amount = deposit_amount.clone();
+        Callback::from(move |_| {
+            deposit_clicked.emit((shielded_address.to_string(), *deposit_amount));
+            shielded_address.set("".to_string());
+            deposit_amount.set(0);
+        })
     };
 
     html! {
@@ -107,6 +140,7 @@ pub fn unshielded_account(
                     type="text"
                     placeholder="Enter Shield address"
                     oninput={on_address_change}
+                    value={shielded_address.to_string()}
                 />
             </div>
             <div>
@@ -114,11 +148,12 @@ pub fn unshielded_account(
                     id="deposit_amount"
                     type="text"
                     placeholder="Enter Deposit amount"
-                    // oninput={on_address_change}
+                    oninput={on_deposit_amount_change}
+                    value={if *deposit_amount == 0 { "".to_string() } else { deposit_amount.to_string() }}
                 />
             </div>
             <div class = "deposit-button">
-                <button onclick={on_deposit} >
+                <button onclick={on_click} >
                     {"Deposit"}
                 </button>
             </div>
@@ -134,8 +169,14 @@ pub fn shielded_account(
         withdraw_clicked,
     }: &ShieldAccountProps,
 ) -> Html {
-    // Dummy actions for Withdraw button
-    let on_withdraw = { withdraw_clicked };
+    // Handle withdraw button click
+    let on_click = {
+        let withdraw_clicked = withdraw_clicked.clone();
+        let address = address.clone();
+        Callback::from(move |_| {
+            withdraw_clicked.emit(address.clone());
+        })
+    };
 
     html! {
         <div>
@@ -143,7 +184,7 @@ pub fn shielded_account(
                 {address.clone()}{" : "}{*deposited}<strong>{" ETH"}</strong>
             </div>
             <div class = "withdraw-button">
-                <button onclick={on_withdraw} >
+                <button onclick={on_click} >
                     {"Withdraw"}
                 </button>
             </div>
