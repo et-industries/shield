@@ -63,3 +63,7 @@
     border-radius: 4px; 
     cursor: pointer;
 }
+
+#nullifier {
+    border: 1px solid #ddd;
+}

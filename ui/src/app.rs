@@ -25,6 +25,8 @@ pub fn app() -> Html {
         ]
     });
 
+    let nullifier = use_state(|| "".to_string());
+
     // {
     //     let mut unshielded_accounts = unshielded_accounts.to_vec();
     //     use_effect(move || {
@@ -69,6 +71,12 @@ pub fn app() -> Html {
               }
             }).collect::<Html>()}
           </div>
+
+          <div class="nullifier-container">
+            <label for="nullifier" class="nullifier-label">{"Nullifier"}</label>
+            <p id="nullifier" class="nullifier-text" readonly=true>{nullifier.to_string()}</p>
+          </div>
+
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
             {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
