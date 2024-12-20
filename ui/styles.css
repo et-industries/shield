@@ -64,6 +64,20 @@
     cursor: pointer;
 }
 
+.nullifier-container {
+    margin-top: 10px;
+    padding: 5px;
+    border: 1px solid #ddd;
+}
+
 #nullifier {
     border: 1px solid #ddd;
+    height: 50px; /* Fixed height */
+    padding: 5px; /* Optional: Padding inside the box */
+    border: 1px solid #ccc; /* Optional: Border for visibility */
+    border-radius: 5px; /* Optional: Rounded corners */
+    overflow-wrap: break-word; /* Allows long words to break to the next line */
+    word-break: break-word; /* Breaks long words at word boundaries */
+    text-align: left; /* Left-align the text horizontally */
+    display: flex; /* Enables flexbox */
 }

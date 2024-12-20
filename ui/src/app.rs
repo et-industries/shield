@@ -88,7 +88,7 @@ pub fn app() -> Html {
           </div>
 
           <div class="nullifier-container">
-            <label for="nullifier" class="nullifier-label">{"Nullifier"}</label>
+            <label for="nullifier" class="nullifier-label"><strong>{"nullifier"}</strong></label>
             <p id="nullifier" class="nullifier-text" readonly=true>{nullifier.to_string()}</p>
           </div>
 
