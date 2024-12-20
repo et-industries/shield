@@ -1,6 +1,9 @@
 use crate::{
     bindgen::*,
-    util::{AccountState, DepositParams, ShieldAccountProps, UnShieldAccountProps, WithdrawParams},
+    util::{
+        AccountState, DepositParams, ShieldAccountProps, ShieldedAccountState,
+        UnShieldAccountProps, UnShieldedAccountState, WithdrawParams,
+    },
 };
 use serde_wasm_bindgen::to_value;
 use wasm_bindgen_futures::spawn_local;
@@ -12,17 +15,16 @@ const DEFAULT_DEPOSITED: u64 = 10;
 #[function_component(App)]
 pub fn app() -> Html {
     let unshielded_accounts = use_state(|| {
-        vec![AccountState::new(
+        vec![UnShieldedAccountState::new(
             "0x1234....5678".to_string(),
             DEFAULT_BALANCE,
-            0,
         )]
     });
 
     let shielded_accounts = use_state(|| {
         vec![
-            AccountState::new("0x1234....5678".to_string(), 0, DEFAULT_DEPOSITED),
-            AccountState::new("0xabcd....efgh".to_string(), 0, DEFAULT_DEPOSITED),
+            ShieldedAccountState::new("0x1234....5678".to_string(), DEFAULT_DEPOSITED, false),
+            ShieldedAccountState::new("0xabcd....efgh".to_string(), DEFAULT_DEPOSITED, false),
         ]
     });
 
@@ -44,7 +46,11 @@ pub fn app() -> Html {
         let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
             let mut accounts = shielded_accounts.to_vec();
-            accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
+            accounts.push(ShieldedAccountState::new(
+                new_shielded_addr,
+                deposit_amount,
+                false,
+            ));
             shielded_accounts.set(accounts);
 
             // call deposit function of backend
@@ -81,7 +87,7 @@ pub fn app() -> Html {
         <div class="container">
           <h1 class="accounts-title">{"Unshielded accounts"}</h1>
           <div class="accounts-list">
-            {unshielded_accounts.iter().map(|AccountState { address, balance, .. }| {
+            {unshielded_accounts.iter().map(|UnShieldedAccountState { address, balance }| {
               html! {
                 <div class="accounts-item">
                   <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={deposit_click.clone()} />
@@ -98,10 +104,10 @@ pub fn app() -> Html {
 
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
-            {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
+            {shielded_accounts.iter().map(|ShieldedAccountState { address, deposit_amount, withdraw_success }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={withdraw_click.clone()} />
+                  <ShieldedAccount address={address.clone()} deposited={deposit_amount} withdraw_clicked={withdraw_click.clone()} />
                 </div>
               }
             }).collect::<Html>()}

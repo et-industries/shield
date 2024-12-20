@@ -9,6 +9,35 @@ pub struct AccountState {
     pub deposited: u64,
 }
 
+#[derive(Debug, Clone)]
+pub struct UnShieldedAccountState {
+    pub address: String,
+    pub balance: u64,
+}
+
+impl UnShieldedAccountState {
+    pub fn new(address: String, balance: u64) -> Self {
+        Self { address, balance }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ShieldedAccountState {
+    pub address: String,
+    pub deposit_amount: u64,
+    pub withdraw_success: bool,
+}
+
+impl ShieldedAccountState {
+    pub fn new(address: String, deposit_amount: u64, withdraw_success: bool) -> Self {
+        Self {
+            address,
+            deposit_amount,
+            withdraw_success,
+        }
+    }
+}
+
 impl AccountState {
     pub fn new(address: String, balance: u64, deposited: u64) -> Self {
         Self {
