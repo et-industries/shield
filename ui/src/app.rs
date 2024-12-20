@@ -55,21 +55,20 @@ pub fn app() -> Html {
         let shielded_accounts = shielded_accounts.clone();
         // let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
-            let mut accounts = shielded_accounts.to_vec();
-            accounts.push(ShieldedAccountState::new(
-                new_shielded_addr,
-                deposit_amount,
-                false,
-                "".to_string(), // TODO: should set nullifier in following code
-            ));
-            shielded_accounts.set(accounts);
-
-            // call deposit function of backend
             // let nullifier = nullifier.clone();
+            let shielded_accounts = shielded_accounts.clone();
             let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
             spawn_local(async move {
                 let nullifier_str = invoke("deposit", js_args).await;
-                // nullifier.set(nullifier_str.as_string().unwrap());
+
+                let mut accounts = shielded_accounts.to_vec();
+                accounts.push(ShieldedAccountState::new(
+                    new_shielded_addr,
+                    deposit_amount,
+                    false,
+                    nullifier_str.as_string().unwrap(),
+                ));
+                shielded_accounts.set(accounts);
             });
         })
     };
