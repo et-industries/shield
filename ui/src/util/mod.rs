@@ -19,14 +19,21 @@ pub struct ShieldedAccountState {
     pub address: String,
     pub deposit_amount: u64,
     pub withdraw_success: bool,
+    pub nullifier: String,
 }
 
 impl ShieldedAccountState {
-    pub fn new(address: String, deposit_amount: u64, withdraw_success: bool) -> Self {
+    pub fn new(
+        address: String,
+        deposit_amount: u64,
+        withdraw_success: bool,
+        nullifier: String,
+    ) -> Self {
         Self {
             address,
             deposit_amount,
             withdraw_success,
+            nullifier,
         }
     }
 }
@@ -43,6 +50,7 @@ pub struct ShieldAccountProps {
     pub address: String,
     pub deposit_amount: u64,
     pub withdraw_success: bool,
+    pub nullifier: String,
     pub withdraw_clicked: Callback<String>,
 }
 

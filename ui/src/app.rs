@@ -23,8 +23,18 @@ pub fn app() -> Html {
 
     let shielded_accounts = use_state(|| {
         vec![
-            ShieldedAccountState::new("0x1234....5678".to_string(), DEFAULT_DEPOSITED, true),
-            ShieldedAccountState::new("0xabcd....efgh".to_string(), DEFAULT_DEPOSITED, false),
+            ShieldedAccountState::new(
+                "0x1234....5678".to_string(),
+                DEFAULT_DEPOSITED,
+                false,
+                "".to_string(),
+            ),
+            ShieldedAccountState::new(
+                "0xabcd....efgh".to_string(),
+                DEFAULT_DEPOSITED,
+                false,
+                "".to_string(),
+            ),
         ]
     });
 
@@ -50,6 +60,7 @@ pub fn app() -> Html {
                 new_shielded_addr,
                 deposit_amount,
                 false,
+                "".to_string(), // TODO: should set nullifier in following code
             ));
             shielded_accounts.set(accounts);
 
@@ -104,10 +115,10 @@ pub fn app() -> Html {
 
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
-            {shielded_accounts.iter().map(|ShieldedAccountState { address, deposit_amount, withdraw_success }| {
+            {shielded_accounts.iter().map(|ShieldedAccountState { address, deposit_amount, withdraw_success, nullifier }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} deposit_amount={deposit_amount} withdraw_success={withdraw_success} withdraw_clicked={withdraw_click.clone()} />
+                  <ShieldedAccount address={address.clone()} deposit_amount={deposit_amount} withdraw_success={withdraw_success} withdraw_clicked={withdraw_click.clone()} nullifier = {nullifier.clone()} />
                 </div>
               }
             }).collect::<Html>()}
@@ -201,6 +212,7 @@ pub fn shielded_account(
         deposit_amount,
         withdraw_success,
         withdraw_clicked,
+        nullifier,
     }: &ShieldAccountProps,
 ) -> Html {
     // Handle withdraw button click
