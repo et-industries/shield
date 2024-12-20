@@ -1,8 +1,8 @@
 use crate::{
     bindgen::*,
     util::{
-        AccountState, DepositParams, ShieldAccountProps, ShieldedAccountState,
-        UnShieldAccountProps, UnShieldedAccountState, WithdrawParams,
+        DepositParams, ShieldAccountProps, ShieldedAccountState, UnShieldAccountProps,
+        UnShieldedAccountState, WithdrawParams,
     },
 };
 use serde_wasm_bindgen::to_value;

@@ -3,13 +3,6 @@ use shield_circuit::Hash;
 use yew::{Callback, Properties};
 
 #[derive(Debug, Clone)]
-pub struct AccountState {
-    pub address: String,
-    pub balance: u64,
-    pub deposited: u64,
-}
-
-#[derive(Debug, Clone)]
 pub struct UnShieldedAccountState {
     pub address: String,
     pub balance: u64,
@@ -34,16 +27,6 @@ impl ShieldedAccountState {
             address,
             deposit_amount,
             withdraw_success,
-        }
-    }
-}
-
-impl AccountState {
-    pub fn new(address: String, balance: u64, deposited: u64) -> Self {
-        Self {
-            address,
-            balance,
-            deposited,
         }
     }
 }
