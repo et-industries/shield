@@ -76,7 +76,7 @@ where
     }
 
     pub fn num_levels() -> u32 {
-        u64::BITS
+        u32::BITS
     }
 
     pub fn root(&self) -> Result<Hash, MerkleError> {
