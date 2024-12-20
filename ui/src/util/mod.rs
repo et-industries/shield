@@ -58,7 +58,8 @@ pub struct UnShieldAccountProps {
 #[derive(Properties, PartialEq)]
 pub struct ShieldAccountProps {
     pub address: String,
-    pub deposited: u64,
+    pub deposit_amount: u64,
+    pub withdraw_success: bool,
     pub withdraw_clicked: Callback<String>,
 }
 

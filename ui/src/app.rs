@@ -23,7 +23,7 @@ pub fn app() -> Html {
 
     let shielded_accounts = use_state(|| {
         vec![
-            ShieldedAccountState::new("0x1234....5678".to_string(), DEFAULT_DEPOSITED, false),
+            ShieldedAccountState::new("0x1234....5678".to_string(), DEFAULT_DEPOSITED, true),
             ShieldedAccountState::new("0xabcd....efgh".to_string(), DEFAULT_DEPOSITED, false),
         ]
     });
@@ -107,7 +107,7 @@ pub fn app() -> Html {
             {shielded_accounts.iter().map(|ShieldedAccountState { address, deposit_amount, withdraw_success }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} deposited={deposit_amount} withdraw_clicked={withdraw_click.clone()} />
+                  <ShieldedAccount address={address.clone()} deposit_amount={deposit_amount} withdraw_success={withdraw_success} withdraw_clicked={withdraw_click.clone()} />
                 </div>
               }
             }).collect::<Html>()}
@@ -198,7 +198,8 @@ pub fn unshielded_account(
 pub fn shielded_account(
     ShieldAccountProps {
         address,
-        deposited,
+        deposit_amount,
+        withdraw_success,
         withdraw_clicked,
     }: &ShieldAccountProps,
 ) -> Html {
@@ -214,10 +215,10 @@ pub fn shielded_account(
     html! {
         <div>
             <div>
-                {address.clone()}{" : "}{*deposited}<strong>{" ETH"}</strong>
+                {address.clone()}{" : "}{*deposit_amount}<strong>{" ETH"}</strong>
             </div>
             <div class = "withdraw-button">
-                <button onclick={on_click} >
+                <button onclick={on_click} disabled={*withdraw_success} >
                     {"Withdraw"}
                 </button>
             </div>
