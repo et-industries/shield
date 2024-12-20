@@ -9,36 +9,12 @@ use serde_wasm_bindgen::to_value;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
-const DEFAULT_BALANCE: u64 = 100;
-const DEFAULT_DEPOSITED: u64 = 10;
-
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts = use_state(|| {
-        vec![UnShieldedAccountState::new(
-            "0x1234....5678".to_string(),
-            DEFAULT_BALANCE,
-        )]
-    });
+    let unshielded_accounts =
+        use_state(|| vec![UnShieldedAccountState::new("0x1234..5678".to_string(), 100)]);
 
-    let shielded_accounts = use_state(|| {
-        vec![
-            ShieldedAccountState::new(
-                0,
-                "0x1234....5678".to_string(),
-                DEFAULT_DEPOSITED,
-                false,
-                "".to_string(),
-            ),
-            ShieldedAccountState::new(
-                1,
-                "0xabcd....efgh".to_string(),
-                DEFAULT_DEPOSITED,
-                false,
-                "".to_string(),
-            ),
-        ]
-    });
+    let shielded_accounts = use_state(|| vec![]);
 
     // {
     //     let mut unshielded_accounts = unshielded_accounts.to_vec();
