@@ -1,10 +1,10 @@
 use crate::{
     bindgen::*,
-    util::{AccountState, ShieldAccountProps, UnShieldAccountProps},
+    util::{AccountState, DepositParams, ShieldAccountProps, UnShieldAccountProps, WithdrawParams},
 };
+use serde_wasm_bindgen::to_value;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
-use serde_wasm_bindgen::to_value;
 
 const DEFAULT_BALANCE: u64 = 100;
 const DEFAULT_DEPOSITED: u64 = 10;
@@ -58,12 +58,19 @@ pub fn app() -> Html {
 
     let withdraw_click = {
         let shielded_accounts = shielded_accounts.clone();
+        let nullifier = nullifier.clone();
         Callback::from(move |shielded_addr: String| {
             let mut accounts = shielded_accounts.to_vec();
             accounts.retain(|a| a.address != shielded_addr);
             shielded_accounts.set(accounts);
 
-            // TODO: call withdraw function of backend
+            // call withdraw function of backend
+            let nullifier = nullifier.clone();
+            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier.to_string())).unwrap();
+            spawn_local(async move {
+                let nullifier_str = unsafe { invoke("withdraw", js_args) }.await;
+                nullifier.set(nullifier_str.as_string().unwrap());
+            });
         })
     };
 

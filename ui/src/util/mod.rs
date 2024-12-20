@@ -1,5 +1,6 @@
-use yew::{Callback, Properties};
 use serde::Serialize;
+use shield_circuit::Hash;
+use yew::{Callback, Properties};
 
 #[derive(Debug, Clone)]
 pub struct AccountState {
@@ -34,5 +35,18 @@ pub struct ShieldAccountProps {
 
 #[derive(Serialize)]
 pub struct DepositParams {
-    recipiant: u64,
+    pub(crate) recipiant: u64,
+}
+
+#[derive(Serialize)]
+pub struct WithdrawParams {
+    pub(crate) nullifier: Hash,
+}
+
+impl WithdrawParams {
+    pub fn from_hex_str(nullifier: String) -> Self {
+        Self {
+            nullifier: Hash::from_hex(nullifier),
+        }
+    }
 }
