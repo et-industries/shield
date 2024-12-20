@@ -1,4 +1,5 @@
 use yew::{Callback, Properties};
+use serde::Serialize;
 
 #[derive(Debug, Clone)]
 pub struct AccountState {
@@ -29,4 +30,9 @@ pub struct ShieldAccountProps {
     pub address: String,
     pub deposited: u64,
     pub withdraw_clicked: Callback<String>,
+}
+
+#[derive(Serialize)]
+pub struct DepositParams {
+    recipiant: u64,
 }
