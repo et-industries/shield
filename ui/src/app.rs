@@ -50,7 +50,7 @@ pub fn app() -> Html {
             let nullifier = nullifier.clone();
             let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
             spawn_local(async move {
-                let nullifier_str = invoke("deposit", js_args).await;
+                let nullifier_str = unsafe { invoke("deposit", js_args) }.await;
                 nullifier.set(nullifier_str.as_string().unwrap());
             });
         })
