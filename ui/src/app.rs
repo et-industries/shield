@@ -69,7 +69,7 @@ pub fn app() -> Html {
             let js_args = to_value(&WithdrawParams::from_hex_str(nullifier.to_string())).unwrap();
             spawn_local(async move {
                 let nullifier_str = invoke("withdraw", js_args).await;
-                nullifier.set(nullifier_str.as_string().unwrap());
+                nullifier.set(nullifier_str.as_bool().unwrap().to_string());
             });
         })
     };
