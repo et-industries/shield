@@ -38,9 +38,6 @@ pub fn app() -> Html {
         ]
     });
 
-    // let nullifier = use_state(|| "".to_string());
-    // let withdrawn_status = use_state(|| "".to_string());
-
     // {
     //     let mut unshielded_accounts = unshielded_accounts.to_vec();
     //     use_effect(move || {
@@ -53,9 +50,7 @@ pub fn app() -> Html {
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
-        // let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
-            // let nullifier = nullifier.clone();
             let shielded_accounts = shielded_accounts.clone();
             let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
             spawn_local(async move {
@@ -75,16 +70,11 @@ pub fn app() -> Html {
 
     let withdraw_click = {
         let shielded_accounts = shielded_accounts.clone();
-        // let nullifier = nullifier.clone();
-        // let withdrawn_status = withdrawn_status.clone();
         Callback::from(move |(shielded_addr, deposit_amount, nullifier)| {
-            // let nullifier = nullifier.clone();
-            // let withdrawn_status = withdrawn_status.clone();
             let shielded_accounts = shielded_accounts.clone();
             let js_args = to_value(&WithdrawParams::from_hex_str(nullifier)).unwrap();
             spawn_local(async move {
                 let withdrawn_res = invoke("withdraw", js_args).await;
-                // withdrawn_status.set(withdrawn_res.as_string().unwrap());
 
                 let mut accounts = shielded_accounts.to_vec();
                 for account in accounts.iter_mut() {
@@ -109,12 +99,6 @@ pub fn app() -> Html {
               }
             }).collect::<Html>()}
           </div>
-
-        //   <div class="nullifier-container">
-        //     <label for="nullifier" class="nullifier-label"><strong>{"nullifier"}</strong></label>
-        //     <p id="nullifier" class="nullifier-text" readonly=true>{nullifier.to_string()}</p>
-        //     <p><strong>{"withdrawn? "}{withdrawn_status.to_string()}</strong></p>
-        //   </div>
 
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
