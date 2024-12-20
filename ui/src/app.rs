@@ -79,17 +79,21 @@ pub fn app() -> Html {
         // let nullifier = nullifier.clone();
         // let withdrawn_status = withdrawn_status.clone();
         Callback::from(move |(shielded_addr, deposit_amount, nullifier)| {
-            let mut accounts = shielded_accounts.to_vec();
-            accounts.retain(|a| a.address != shielded_addr && a.deposit_amount != deposit_amount);
-            shielded_accounts.set(accounts);
-
-            // call withdraw function of backend
             // let nullifier = nullifier.clone();
-            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier)).unwrap();
             // let withdrawn_status = withdrawn_status.clone();
+            let shielded_accounts = shielded_accounts.clone();
+            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier)).unwrap();
             spawn_local(async move {
                 let withdrawn_res = invoke("withdraw", js_args).await;
-                // withdrawn_status.set(withdrawn_res.as_bool().unwrap().to_string());
+                // withdrawn_status.set(withdrawn_res.as_string().unwrap());
+
+                let mut accounts = shielded_accounts.to_vec();
+                for account in accounts.iter_mut() {
+                    if account.address == shielded_addr && account.deposit_amount == deposit_amount {
+                        account.withdraw_success = withdrawn_res.as_bool().unwrap();
+                    }
+                }
+                shielded_accounts.set(accounts);
             });
         })
     };
