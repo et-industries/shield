@@ -4,6 +4,7 @@ use crate::{
 };
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use serde_wasm_bindgen::to_value;
 
 const DEFAULT_BALANCE: u64 = 100;
 const DEFAULT_DEPOSITED: u64 = 10;
@@ -39,12 +40,19 @@ pub fn app() -> Html {
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
+        let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
             let mut accounts = shielded_accounts.to_vec();
             accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
             shielded_accounts.set(accounts);
 
-            // TODO: call deposit function of backend
+            // call deposit function of backend
+            let nullifier = nullifier.clone();
+            let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
+            spawn_local(async move {
+                let nullifier_str = invoke("deposit", js_args).await;
+                nullifier.set(nullifier_str.as_string().unwrap());
+            });
         })
     };
 
