@@ -51,7 +51,7 @@ pub struct ShieldAccountProps {
     pub deposit_amount: u64,
     pub withdraw_success: bool,
     pub nullifier: String,
-    pub withdraw_clicked: Callback<String>,
+    pub withdraw_clicked: Callback<(String, u64, String)>,
 }
 
 #[derive(Serialize)]
