@@ -93,3 +93,11 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[test]
+fn test_multiple_deposit_withdraw() {
+    let n1 = deposit(1).unwrap();
+    let n2 = deposit(2).unwrap();
+    assert_eq!(withdraw(Hash::from_hex(n1)).unwrap(), true);
+    assert_eq!(withdraw(Hash::from_hex(n2)).unwrap(), true);
+}
