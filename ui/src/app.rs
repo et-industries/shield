@@ -32,6 +32,14 @@ pub fn app() -> Html {
             let shielded_accounts = shielded_accounts.clone();
             spawn_local(async move {
                 let mut accounts = shielded_accounts.to_vec();
+                
+                // TODO: 
+                //   Current backend logic fails to withdraw anything, when there are multiple deposits.
+                //   We need to fix this.
+                if accounts.len() == 1 {
+                    return;
+                }
+
                 let account_id = accounts.len();
 
                 let js_args = to_value(&DepositParams {
