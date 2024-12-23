@@ -1,33 +1,20 @@
 use crate::{
     bindgen::*,
-    util::{AccountState, DepositParams, ShieldAccountProps, UnShieldAccountProps, WithdrawParams},
+    util::{
+        DepositParams, ShieldAccountProps, ShieldedAccountState, UnShieldAccountProps,
+        UnShieldedAccountState, WithdrawParams,
+    },
 };
 use serde_wasm_bindgen::to_value;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
-const DEFAULT_BALANCE: u64 = 100;
-const DEFAULT_DEPOSITED: u64 = 10;
-
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts = use_state(|| {
-        vec![AccountState::new(
-            "0x1234....5678".to_string(),
-            DEFAULT_BALANCE,
-            0,
-        )]
-    });
+    let unshielded_accounts =
+        use_state(|| vec![UnShieldedAccountState::new("0x1234..5678".to_string(), 100)]);
 
-    let shielded_accounts = use_state(|| {
-        vec![
-            AccountState::new("0x1234....5678".to_string(), 0, DEFAULT_DEPOSITED),
-            AccountState::new("0xabcd....efgh".to_string(), 0, DEFAULT_DEPOSITED),
-        ]
-    });
-
-    let nullifier = use_state(|| "".to_string());
-    let withdrawn_status = use_state(|| "".to_string());
+    let shielded_accounts = use_state(|| vec![]);
 
     // {
     //     let mut unshielded_accounts = unshielded_accounts.to_vec();
@@ -41,38 +28,53 @@ pub fn app() -> Html {
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
-        let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
-            let mut accounts = shielded_accounts.to_vec();
-            accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
-            shielded_accounts.set(accounts);
-
-            // call deposit function of backend
-            let nullifier = nullifier.clone();
-            let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
+            let shielded_accounts = shielded_accounts.clone();
             spawn_local(async move {
+                let mut accounts = shielded_accounts.to_vec();
+                
+                // TODO: 
+                //   Current backend logic fails to withdraw anything, when there are multiple deposits.
+                //   We need to fix this.
+                if accounts.len() == 1 {
+                    return;
+                }
+
+                let account_id = accounts.len();
+
+                let js_args = to_value(&DepositParams {
+                    recipiant: account_id as u64,
+                })
+                .unwrap();
                 let nullifier_str = invoke("deposit", js_args).await;
-                nullifier.set(nullifier_str.as_string().unwrap());
+
+                accounts.push(ShieldedAccountState::new(
+                    account_id,
+                    new_shielded_addr,
+                    deposit_amount,
+                    false,
+                    nullifier_str.as_string().unwrap(),
+                ));
+                shielded_accounts.set(accounts);
             });
         })
     };
 
     let withdraw_click = {
         let shielded_accounts = shielded_accounts.clone();
-        let nullifier = nullifier.clone();
-        let withdrawn_status = withdrawn_status.clone();
-        Callback::from(move |shielded_addr: String| {
-            let mut accounts = shielded_accounts.to_vec();
-            accounts.retain(|a| a.address != shielded_addr);
-            shielded_accounts.set(accounts);
-
-            // call withdraw function of backend
-            let nullifier = nullifier.clone();
-            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier.to_string())).unwrap();
-            let withdrawn_status = withdrawn_status.clone();
+        Callback::from(move |(id, nullifier)| {
+            let shielded_accounts = shielded_accounts.clone();
+            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier)).unwrap();
             spawn_local(async move {
                 let withdrawn_res = invoke("withdraw", js_args).await;
-                withdrawn_status.set(withdrawn_res.as_bool().unwrap().to_string());
+
+                let mut accounts = shielded_accounts.to_vec();
+                for account in accounts.iter_mut() {
+                    if account.id == id {
+                        account.withdraw_success = withdrawn_res.as_bool().unwrap();
+                    }
+                }
+                shielded_accounts.set(accounts);
             });
         })
     };
@@ -81,7 +83,7 @@ pub fn app() -> Html {
         <div class="container">
           <h1 class="accounts-title">{"Unshielded accounts"}</h1>
           <div class="accounts-list">
-            {unshielded_accounts.iter().map(|AccountState { address, balance, .. }| {
+            {unshielded_accounts.iter().map(|UnShieldedAccountState { address, balance }| {
               html! {
                 <div class="accounts-item">
                   <UnShieldedAccount address={address.clone()} balance={balance} deposit_clicked={deposit_click.clone()} />
@@ -90,18 +92,12 @@ pub fn app() -> Html {
             }).collect::<Html>()}
           </div>
 
-          <div class="nullifier-container">
-            <label for="nullifier" class="nullifier-label"><strong>{"nullifier"}</strong></label>
-            <p id="nullifier" class="nullifier-text" readonly=true>{nullifier.to_string()}</p>
-            <p><strong>{"withdrawn? "}{withdrawn_status.to_string()}</strong></p>
-          </div>
-
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
-            {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
+            {shielded_accounts.iter().map(|ShieldedAccountState {id, address, deposit_amount, withdraw_success, nullifier }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount address={address.clone()} deposited={deposited} withdraw_clicked={withdraw_click.clone()} />
+                  <ShieldedAccount id = {id} address={address.clone()} deposit_amount={deposit_amount} withdraw_success={withdraw_success} withdraw_clicked={withdraw_click.clone()} nullifier = {nullifier.clone()} />
                 </div>
               }
             }).collect::<Html>()}
@@ -191,27 +187,31 @@ pub fn unshielded_account(
 #[function_component(ShieldedAccount)]
 pub fn shielded_account(
     ShieldAccountProps {
+        id,
         address,
-        deposited,
+        deposit_amount,
+        withdraw_success,
         withdraw_clicked,
+        nullifier,
     }: &ShieldAccountProps,
 ) -> Html {
     // Handle withdraw button click
     let on_click = {
         let withdraw_clicked = withdraw_clicked.clone();
-        let address = address.clone();
+        let id = id.clone();
+        let nullifier = nullifier.clone();
         Callback::from(move |_| {
-            withdraw_clicked.emit(address.clone());
+            withdraw_clicked.emit((id, nullifier.clone()));
         })
     };
 
     html! {
         <div>
             <div>
-                {address.clone()}{" : "}{*deposited}<strong>{" ETH"}</strong>
+                {address.clone()}{" : "}{*deposit_amount}<strong>{" ETH"}</strong>
             </div>
             <div class = "withdraw-button">
-                <button onclick={on_click} >
+                <button onclick={on_click} disabled={*withdraw_success} >
                     {"Withdraw"}
                 </button>
             </div>
