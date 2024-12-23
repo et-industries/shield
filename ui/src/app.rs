@@ -1,7 +1,8 @@
 use crate::{
     bindgen::*,
-    util::{AccountState, ShieldAccountProps, UnShieldAccountProps},
+    util::{AccountState, DepositParams, ShieldAccountProps, UnShieldAccountProps, WithdrawParams},
 };
+use serde_wasm_bindgen::to_value;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
@@ -25,6 +26,9 @@ pub fn app() -> Html {
         ]
     });
 
+    let nullifier = use_state(|| "".to_string());
+    let withdrawn_status = use_state(|| "".to_string());
+
     // {
     //     let mut unshielded_accounts = unshielded_accounts.to_vec();
     //     use_effect(move || {
@@ -37,23 +41,39 @@ pub fn app() -> Html {
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
+        let nullifier = nullifier.clone();
         Callback::from(move |(new_shielded_addr, deposit_amount)| {
             let mut accounts = shielded_accounts.to_vec();
             accounts.push(AccountState::new(new_shielded_addr, 0, deposit_amount));
             shielded_accounts.set(accounts);
 
-            // TODO: call deposit function of backend
+            // call deposit function of backend
+            let nullifier = nullifier.clone();
+            let js_args = to_value(&DepositParams { recipiant: 456 }).unwrap();
+            spawn_local(async move {
+                let nullifier_str = invoke("deposit", js_args).await;
+                nullifier.set(nullifier_str.as_string().unwrap());
+            });
         })
     };
 
     let withdraw_click = {
         let shielded_accounts = shielded_accounts.clone();
+        let nullifier = nullifier.clone();
+        let withdrawn_status = withdrawn_status.clone();
         Callback::from(move |shielded_addr: String| {
             let mut accounts = shielded_accounts.to_vec();
             accounts.retain(|a| a.address != shielded_addr);
             shielded_accounts.set(accounts);
 
-            // TODO: call withdraw function of backend
+            // call withdraw function of backend
+            let nullifier = nullifier.clone();
+            let js_args = to_value(&WithdrawParams::from_hex_str(nullifier.to_string())).unwrap();
+            let withdrawn_status = withdrawn_status.clone();
+            spawn_local(async move {
+                let withdrawn_res = invoke("withdraw", js_args).await;
+                withdrawn_status.set(withdrawn_res.as_bool().unwrap().to_string());
+            });
         })
     };
 
@@ -69,6 +89,13 @@ pub fn app() -> Html {
               }
             }).collect::<Html>()}
           </div>
+
+          <div class="nullifier-container">
+            <label for="nullifier" class="nullifier-label"><strong>{"nullifier"}</strong></label>
+            <p id="nullifier" class="nullifier-text" readonly=true>{nullifier.to_string()}</p>
+            <p><strong>{"withdrawn? "}{withdrawn_status.to_string()}</strong></p>
+          </div>
+
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
             {shielded_accounts.iter().map(|AccountState { address, deposited, .. }| {
