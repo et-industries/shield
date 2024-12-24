@@ -48,7 +48,7 @@ pub fn to_bits(num: &[u8]) -> Vec<bool> {
 pub fn num_to_bits_vec(num: u64) -> Vec<bool> {
     let bits = to_bits(&num.to_le_bytes());
 
-    bits[..u64::BITS as usize].to_vec()
+    bits[..u32::BITS as usize].to_vec()
 }
 
 fn next_index(i: u64) -> u64 {

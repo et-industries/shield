@@ -3,20 +3,6 @@ use serde::Serialize;
 use sha3::{Digest, Keccak256};
 use std::{collections::HashMap, marker::PhantomData};
 
-pub fn to_bits(num: &[u8]) -> Vec<bool> {
-    let len = num.len() * 8;
-    let mut bits = Vec::new();
-    for i in 0..len {
-        let bit = num[i / 8] & (1 << (i % 8)) != 0;
-        bits.push(bit);
-    }
-    bits
-}
-
-pub fn num_to_bits(num: u64) -> Vec<bool> {
-    to_bits(num.to_be_bytes().as_ref())
-}
-
 #[derive(Debug, Clone, Serialize)]
 pub struct Path {
     index: u64,
@@ -26,7 +12,7 @@ pub struct Path {
 
 impl Path {
     pub fn verify_against(&self, root: Hash) -> bool {
-        let sides = num_to_bits(self.index);
+        let sides = num_to_bits_vec(self.index);
         let mut next = self.leaf.clone();
         for (n, left) in self
             .neighbours
