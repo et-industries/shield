@@ -18,23 +18,15 @@ impl UnShieldedAccountState {
 pub struct ShieldedAccountState {
     pub id: usize,
     pub address: String,
-    pub deposit_amount: u64,
     pub withdraw_success: bool,
     pub nullifier: String,
 }
 
 impl ShieldedAccountState {
-    pub fn new(
-        id: usize,
-        address: String,
-        deposit_amount: u64,
-        withdraw_success: bool,
-        nullifier: String,
-    ) -> Self {
+    pub fn new(id: usize, address: String, withdraw_success: bool, nullifier: String) -> Self {
         Self {
             id,
             address,
-            deposit_amount,
             withdraw_success,
             nullifier,
         }
@@ -45,7 +37,7 @@ impl ShieldedAccountState {
 pub struct UnShieldAccountProps {
     pub address: String,
     pub balance: u64,
-    pub deposit_clicked: Callback<(String, u64)>,
+    pub deposit_clicked: Callback<String>,
 }
 
 #[derive(Properties, PartialEq)]
@@ -66,6 +58,11 @@ pub struct DepositParams {
 #[derive(Serialize)]
 pub struct WithdrawParams {
     pub(crate) nullifier: Hash,
+}
+
+#[derive(Serialize)]
+pub struct GetBalanceParams {
+    pub(crate) account: u64,
 }
 
 impl WithdrawParams {

@@ -1,8 +1,10 @@
+use std::ops::Deref;
+
 use crate::{
     bindgen::*,
     util::{
-        DepositParams, ShieldAccountProps, ShieldedAccountState, UnShieldAccountProps,
-        UnShieldedAccountState, WithdrawParams,
+        DepositParams, GetBalanceParams, ShieldAccountProps, ShieldedAccountState,
+        UnShieldAccountProps, UnShieldedAccountState, WithdrawParams,
     },
 };
 use serde_wasm_bindgen::to_value;
@@ -11,34 +13,45 @@ use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let unshielded_accounts =
-        use_state(|| vec![UnShieldedAccountState::new("0x1234..5678".to_string(), 100)]);
-
     let shielded_accounts = use_state(|| vec![]);
+    let unshielded_accounts = use_state(|| Vec::new());
+    let deposit_amount = use_state(|| 0);
 
-    // {
-    //     let mut unshielded_accounts = unshielded_accounts.to_vec();
-    //     use_effect(move || {
-    //         spawn_local(async move {
-    //             let res = invoke_without_args("get_default_account").await.as_string();
-    //             unshielded_accounts.push(res.unwrap_or("0".to_string()));
-    //         });
-    //     });
-    // }
+    {
+        let unshielded_accounts = unshielded_accounts.clone();
+        let deposit_amount = deposit_amount.clone();
+        spawn_local(async move {
+            let amount_val = invoke_without_args("get_default_amount").await.as_string();
+            let amount = amount_val
+                .clone()
+                .unwrap_or("0".to_string())
+                .parse::<u64>()
+                .unwrap();
+
+            deposit_amount.set(amount);
+
+            let account_val = invoke_without_args("get_default_account").await.as_string();
+            let account = account_val
+                .clone()
+                .unwrap_or("0".to_string())
+                .parse::<u64>()
+                .unwrap();
+
+            let js_args = to_value(&GetBalanceParams { account }).unwrap();
+            let balance = invoke("get_balance", js_args).await.as_string();
+            let balance = balance.unwrap_or("0".to_string()).parse::<u64>().unwrap();
+            let state =
+                UnShieldedAccountState::new(account_val.unwrap_or("0".to_string()), balance);
+            unshielded_accounts.set(vec![state]);
+        });
+    }
 
     let deposit_click = {
         let shielded_accounts = shielded_accounts.clone();
-        Callback::from(move |(new_shielded_addr, deposit_amount)| {
+        Callback::from(move |new_shielded_addr| {
             let shielded_accounts = shielded_accounts.clone();
             spawn_local(async move {
                 let mut accounts = shielded_accounts.to_vec();
-                
-                // TODO: 
-                //   Current backend logic fails to withdraw anything, when there are multiple deposits.
-                //   We need to fix this.
-                if accounts.len() == 1 {
-                    return;
-                }
 
                 let account_id = accounts.len();
 
@@ -51,7 +64,6 @@ pub fn app() -> Html {
                 accounts.push(ShieldedAccountState::new(
                     account_id,
                     new_shielded_addr,
-                    deposit_amount,
                     false,
                     nullifier_str.as_string().unwrap(),
                 ));
@@ -94,10 +106,17 @@ pub fn app() -> Html {
 
           <h1 class="accounts-title">{"Shielded accounts"}</h1>
           <div class="accounts-list">
-            {shielded_accounts.iter().map(|ShieldedAccountState {id, address, deposit_amount, withdraw_success, nullifier }| {
+            {shielded_accounts.iter().map(|ShieldedAccountState {id, address, withdraw_success, nullifier }| {
               html! {
                 <div class="accounts-item">
-                  <ShieldedAccount id = {id} address={address.clone()} deposit_amount={deposit_amount} withdraw_success={withdraw_success} withdraw_clicked={withdraw_click.clone()} nullifier = {nullifier.clone()} />
+                    <ShieldedAccount
+                        id={id}
+                        address={address.clone()}
+                        deposit_amount={*deposit_amount.deref()}
+                        withdraw_success={withdraw_success}
+                        withdraw_clicked={withdraw_click.clone()}
+                        nullifier = {nullifier.clone()}
+                    />
                 </div>
               }
             }).collect::<Html>()}
@@ -117,9 +136,6 @@ pub fn unshielded_account(
     // State to hold the shielded address
     let shielded_address = use_state(|| "".to_string());
 
-    // State to hold the deposit amount (dummy value for now)
-    let deposit_amount = use_state(|| 0u64);
-
     // Handle address input change
     let on_address_change = {
         let shielded_address = shielded_address.clone();
@@ -130,25 +146,13 @@ pub fn unshielded_account(
         })
     };
 
-    // Handle deposit amount input change
-    let on_deposit_amount_change = {
-        let deposit_amount = deposit_amount.clone();
-        Callback::from(move |e: InputEvent| {
-            if let Some(input) = e.target_dyn_into::<web_sys::HtmlInputElement>() {
-                deposit_amount.set(input.value().parse().unwrap_or_default());
-            }
-        })
-    };
-
     // Handle deposit button click
     let on_click = {
         let deposit_clicked = deposit_clicked.clone();
         let shielded_address = shielded_address.clone();
-        let deposit_amount = deposit_amount.clone();
         Callback::from(move |_| {
-            deposit_clicked.emit((shielded_address.to_string(), *deposit_amount));
+            deposit_clicked.emit(shielded_address.to_string());
             shielded_address.set("".to_string());
-            deposit_amount.set(0);
         })
     };
 
@@ -164,15 +168,6 @@ pub fn unshielded_account(
                     placeholder="Enter Shield address"
                     oninput={on_address_change}
                     value={shielded_address.to_string()}
-                />
-            </div>
-            <div>
-                <input
-                    id="deposit_amount"
-                    type="text"
-                    placeholder="Enter Deposit amount"
-                    oninput={on_deposit_amount_change}
-                    value={if *deposit_amount == 0 { "".to_string() } else { deposit_amount.to_string() }}
                 />
             </div>
             <div class = "deposit-button">
@@ -212,7 +207,7 @@ pub fn shielded_account(
             </div>
             <div class = "withdraw-button">
                 <button onclick={on_click} disabled={*withdraw_success} >
-                    {"Withdraw"}
+                    {format!("Withdraw{}", if *withdraw_success { " (Unshielded)" } else { "" })}
                 </button>
             </div>
         </div>

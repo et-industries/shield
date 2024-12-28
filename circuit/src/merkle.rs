@@ -11,7 +11,7 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn verify_against(&self, root: Hash) -> bool {
+    pub fn construct_root(&self) -> Hash {
         let sides = num_to_bits_vec(self.index);
         let mut next = self.leaf.clone();
         for (n, left) in self
@@ -26,7 +26,7 @@ impl Path {
             };
             next = new_next;
         }
-        root == next
+        next
     }
 }
 
