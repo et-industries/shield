@@ -6,6 +6,7 @@ use shield_circuit::{
 };
 use std::sync::Mutex;
 use std::{collections::HashMap, ops::AddAssign};
+use tauri::Manager;
 
 lazy_static! {
     static ref NOTES: Mutex<HashMap<Hash, Note>> = Mutex::new(HashMap::new());
@@ -16,6 +17,20 @@ lazy_static! {
 #[tauri::command]
 fn get_default_account() -> String {
     AnonymityPool::account().to_string()
+}
+
+#[tauri::command]
+fn get_default_amount() -> String {
+    AnonymityPool::amount().to_string()
+}
+
+#[tauri::command]
+fn get_balance(account: u64) -> Result<String, String> {
+    let pool = match POOL.lock() {
+        Ok(pool) => pool,
+        Err(e) => return Err(e.to_string()),
+    };
+    Ok(pool.get_balance(account).to_string())
 }
 
 #[tauri::command]
@@ -85,11 +100,21 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             deposit,
-            get_notes,
-            get_nullifiers,
             withdraw,
+            get_notes,
+            get_balance,
+            get_nullifiers,
+            get_default_amount,
             get_default_account,
         ])
+        .setup(|app| {
+            #[cfg(debug_assertions)]
+            {
+                let window = app.get_webview_window("main").unwrap();
+                window.open_devtools();
+            }
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
