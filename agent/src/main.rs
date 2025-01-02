@@ -25,6 +25,8 @@ lazy_static! {
     static ref TOPIC: Mutex<u64> = Mutex::new(0);
 }
 
+const EXIT_KEYWORDS: [&str; 3] = ["exit", "abort", "quit"];
+
 #[derive(Debug, thiserror::Error)]
 enum WalletError {
     #[error("Note not found: {0}")]
@@ -187,8 +189,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let mut line = String::new();
     while inp.read_line(&mut line)? != 0 {
         let line = std::mem::take(&mut line);
-        let exit_functions = vec!["exit", "abort", "quit"];
-        if exit_functions.contains(&line.trim()) {
+        if EXIT_KEYWORDS.contains(&line.trim()) {
             break;
         }
         history.push(Message {
