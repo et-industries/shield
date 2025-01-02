@@ -49,7 +49,7 @@ fn deposit(recipiant: u64) -> Result<String, String> {
         Ok(pool) => pool,
         Err(e) => return Err(e.to_string()),
     };
-    let note = pool.deposit(AnonymityPool::account(), secret, topic.clone(), recipiant);
+    let note = pool.deposit(AnonymityPool::account(), secret, *topic, recipiant);
     let nullifier = note.nullifier();
     notes.insert(nullifier.clone(), note);
     topic.add_assign(1);

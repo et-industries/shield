@@ -44,6 +44,12 @@ pub struct AnonymityPool {
     root_history: Vec<Hash>,
 }
 
+impl Default for AnonymityPool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AnonymityPool {
     pub fn new() -> Self {
         let tree = DenseIncrementalMerkleTree::<Keccak256>::new();
@@ -115,8 +121,8 @@ impl AnonymityPool {
         let topic_hash = hash_leaf::<Keccak256>(note.topic.to_be_bytes().to_vec());
         let nullifier = hash_two::<Keccak256>(secret_hash.clone(), topic_hash);
 
-        if let Some(nullifier) = self.nullifiers.get(&nullifier) {
-            if *nullifier == true {
+        if let Some(&is_nullifier_taken) = self.nullifiers.get(&nullifier) {
+            if is_nullifier_taken {
                 return false;
             }
         }

@@ -13,8 +13,8 @@ use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    let shielded_accounts = use_state(|| vec![]);
-    let unshielded_accounts = use_state(|| Vec::new());
+    let shielded_accounts = use_state(Vec::new);
+    let unshielded_accounts = use_state(Vec::new);
     let deposit_amount = use_state(|| 0);
 
     {
@@ -159,7 +159,7 @@ pub fn unshielded_account(
     html! {
         <div>
             <div>
-                {(*address).clone()}{" : "}{(*balance).clone()}<strong>{" ETH"}</strong>
+                {(*address).clone()}{" : "}{*balance}<strong>{" ETH"}</strong>
             </div>
             <div>
                 <input
@@ -193,7 +193,7 @@ pub fn shielded_account(
     // Handle withdraw button click
     let on_click = {
         let withdraw_clicked = withdraw_clicked.clone();
-        let id = id.clone();
+        let id = *id;
         let nullifier = nullifier.clone();
         Callback::from(move |_| {
             withdraw_clicked.emit((id, nullifier.clone()));
